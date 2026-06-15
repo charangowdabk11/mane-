@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Online Voting System{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{% url 'home' %}" class="nav-logo">VoteCollege</a>
+        <div class="nav-links">
+            {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}">Dashboard</a>
+                <a href="{% url 'results' %}">Results</a>
+                {% if user.is_staff %}
+                    <a href="/admin/" style="color: #ff4757; font-weight: 700;">Admin Panel</a>
+                {% endif %}
+                <span style="margin-left: 20px; font-weight: 600;">{{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn btn-outline" style="padding: 8px 15px;">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary" style="padding: 8px 15px;">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="messages-container" style="max-width: 1200px; margin: 20px auto; padding: 0 40px;">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+
+    {% block content %}{% endblock %}
+
+    <footer style="text-align: center; padding: 40px; color: #666;">
+        <p>&copy; 2026 Online Voting System. Secure & Transparent.</p>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

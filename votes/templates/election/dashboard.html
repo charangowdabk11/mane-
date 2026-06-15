@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Online Voting{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div style="margin-bottom: 40px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h1 style="margin: 0; font-weight: 800; font-size: 2.5rem;">Student Dashboard</h1>
+            <p style="color: #666; margin-top: 10px;">Welcome, {{ user.username }}. Cast your votes for the following positions.</p>
+        </div>
+        <div style="text-align: right; display: flex; flex-direction: column; gap: 10px; align-items: flex-end;">
+            {% if is_verified %}
+                <div style="display: inline-block; padding: 10px 20px; border-radius: 50px; background: #e7f3ff; color: #007bff; font-weight: 600; border: 1px solid #cce5ff;">
+                    Verified Voter ✓
+                </div>
+            {% else %}
+                <div style="display: inline-block; padding: 10px 20px; border-radius: 50px; background: #fff3cd; color: #856404; font-weight: 600; border: 1px solid #ffeeba;">
+                    Verification Pending ⚠
+                </div>
+            {% endif %}
+
+            {% if election_status %}
+                <div style="display: inline-block; padding: 10px 20px; border-radius: 50px; background: {% if election_status.is_currently_open %}#d4edda{% else %}#f8d7da{% endif %}; color: {% if election_status.is_currently_open %}#155724{% else %}#721c24{% endif %}; font-weight: 600;">
+                    {{ election_status.title }} — {% if election_status.is_currently_open %}Open{% else %}Closed{% endif %}
+                </div>
+                {% if election_status.start_time %}
+                    <div style="font-size: 0.82rem; color: #888;">
+                        🕐 Opens: {{ election_status.start_time|date:"d M Y, H:i" }} UTC
+                    </div>
+                {% endif %}
+                {% if election_status.end_time %}
+                    <div style="font-size: 0.82rem; color: #888;">
+                        🕐 Closes: {{ election_status.end_time|date:"d M Y, H:i" }} UTC
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 40px;">
+        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: var(--accent-color);">{{ total_voters }}</div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">Total Voters</div>
+        </div>
+        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #05c46b;">{{ votes_cast }}</div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">Votes Cast</div>
+        </div>
+        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #ffd32a;">{{ total_candidates }}</div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">Candidates</div>
+        </div>
+        <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: 800; color: #ff6b81;">{{ participation_pct }}%</div>
+            <div style="font-size: 0.85rem; color: #888; margin-top: 4px;">Participation</div>
+        </div>
+    </div>
+
+    <!-- Participation bar -->
+    <div style="background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; margin-bottom: 40px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="font-size: 0.9rem; color: #aaa;">Voter Participation</span>
+            <span style="font-size: 0.9rem; font-weight: 700; color: #fff;">{{ participation_pct }}%</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); border-radius: 50px; height: 10px; overflow: hidden;">
+            <div style="width: {{ participation_pct }}%; background: linear-gradient(90deg, #667eea, #a29bfe); height: 100%; border-radius: 50px; transition: width 0.8s ease;"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        {% for position in positions %}
+            <div class="position-card">
+                <h3 style="margin-top: 0; color: var(--accent-color);">{{ position.name }}</h3>
+                <p style="font-size: 0.9rem; color: #555;">Select the best candidate for this role.</p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    {% if position.id in voted_positions %}
+                        <span style="color: #28a745; font-weight: 700; display: flex; align-items: center;">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" style="margin-right: 5px;">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            Voted
+                        </span>
+                        <a href="{% url 'results' %}" class="btn btn-outline" style="padding: 8px 15px; font-size: 0.8rem;">View Standings</a>
+                    {% else %}
+                        {% if election_status.is_currently_open %}
+                            <a href="{% url 'vote' position.id %}" class="btn btn-primary">Cast Your Vote</a>
+                        {% else %}
+                            <span style="color: #999; font-weight: 600;">Election Closed</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% empty %}
+            <div style="grid-column: span 3; text-align: center; padding: 50px; background: white; border-radius: 20px;">
+                <h3>No active positions at the moment.</h3>
+                <p>Check back soon once the administration starts the election.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
