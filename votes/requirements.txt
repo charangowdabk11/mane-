@@ -4,5 +4,4 @@ django-environ
 bcrypt
 gunicorn
 whitenoise
-dj-database-url
-psycopg2-binary
+
